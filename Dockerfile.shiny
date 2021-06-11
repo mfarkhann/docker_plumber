@@ -1,0 +1,11 @@
+FROM rocker/shiny-verse:4.0.5
+
+LABEL maintainer="Farkhan <farkhan.novianto@gmail.com>"
+
+
+
+## Install R Packages
+RUN install2.r here logger glue tictoc DT shinydashboard
+
+
+COPY shiny/app.R /srv/shiny-server/app.R

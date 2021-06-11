@@ -1,0 +1,34 @@
+# Use template from https://www.rplumber.io/articles/hosting.html#load-balancing
+
+version: '2'
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.logs
+    restart: always
+    volumes: 
+      - plumber_logs:/root/logs
+  shiny:
+    build:
+      context: .
+      dockerfile: Dockerfile.shiny
+    restart: always
+    volumes: 
+      - plumber_logs:/srv/shiny-server/logs
+      - ./shiny-logs/:/var/log/shiny-server/
+    ports:
+      - '3838:3838'  
+  lb:
+    image: 'dockercloud/haproxy:1.2.1'
+    restart: always
+    links:
+     - api
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - '8080:80'  
+      
+volumes:
+  plumber_logs:
+    external: true

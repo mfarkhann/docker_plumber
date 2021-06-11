@@ -1,6 +1,8 @@
+# Use Template from https://github.com/sol-eng/plumber-logging
 # Packages ----
 library(shiny)
 library(shinydashboard)
+library(DT)
 library(fs)
 library(tidyverse)
 library(here)
@@ -41,18 +43,6 @@ ui <- dashboardPage(
       valueBoxOutput("average_execution", width = 6)
     ),
     fluidRow(
-      valueBoxOutput("highest_endpoint", width = 6),
-      valueBoxOutput("highest_user", width = 6)
-    ),
-    fluidRow(
-      box(
-        plotOutput("requests_plot"), 
-        title = "Requests Overview",
-        width = 12,
-        collapsible = TRUE
-      )
-    ),
-    fluidRow(
       box(
         plotOutput("status_plot"),
         title = "Response Status Overview",
@@ -66,10 +56,11 @@ ui <- dashboardPage(
     ),
     fluidRow(
       box(
-        plotOutput("users_plot"),
-        title = "Users Overview",
+        DT::dataTableOutput("detail_data"),
+        title = "Detail Data",
         width = 12,
-        collapsible = TRUE
+        collapsible = TRUE,
+        collapsed = TRUE
       )
     )
   )
@@ -132,33 +123,6 @@ server <- function(input, output, session) {
              subtitle = "Average Execution Time (S)")
   })
   
-  output$highest_endpoint <- renderValueBox({
-    highest_endpoint <- filtered_log() %>% 
-      count(host, method, endpoint) %>% 
-      top_n(1, wt = n)
-    valueBox(value = highest_endpoint$n,
-             subtitle = glue::glue("{highest_endpoint$method} {highest_endpoint$host}{highest_endpoint$endpoint}"))
-  })
-  
-  output$highest_user <- renderValueBox({
-    highest_user <- filtered_log() %>% 
-      count(user_agent, remote_addr) %>% 
-      top_n(1, wt = n)
-    valueBox(value = highest_user$n,
-             subtitle = glue::glue("{highest_user$user_agent}@{highest_user$remote_addr}"))
-  })
-  
-  output$requests_plot <- renderPlot({
-    filtered_log() %>% 
-      count(timestamp) %>% 
-      ggplot(aes(x = timestamp, y = n)) +
-      geom_point() +
-      labs(x = "Time", 
-           y = "Requests") +
-      scale_x_datetime(labels = scales::date_format("%H:%M:%S")) +
-      theme_bw()
-  })
-  
   output$status_plot <- renderPlot({
     filtered_log() %>% 
       count(status = as.factor(status)) %>% 
@@ -184,18 +148,12 @@ server <- function(input, output, session) {
            y = "Requests")
   })
   
-  output$users_plot <- renderPlot({
-    filtered_log() %>% 
-      count(user_agent, remote_addr) %>% 
-      unite(user, user_agent, remote_addr, sep = "@") %>% 
-      top_n(10, wt = n) %>% 
-      ggplot(aes(x = fct_reorder(user, n),y = n)) +
-      geom_col() +
-      theme_bw() +
-      coord_flip() +
-      labs(x = "Users",
-           y = "Requests")
-  })
+  output$detail_data <- DT::renderDataTable({
+    filtered_log()
+  },
+  options = list(scrollX = TRUE))
+  
+  
 }
 
 # Run the application 
