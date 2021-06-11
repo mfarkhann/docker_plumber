@@ -5,4 +5,4 @@ irisData <- iris %>%
   select(id, everything())
 irisData$Species = NULL
 
-saveRDS(irisData, here::here('data','iris_data.rds'))
+readr::write_rds(irisData, here::here('data','iris_data.rds'))

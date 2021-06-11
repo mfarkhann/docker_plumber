@@ -10,7 +10,7 @@ RUN apt-get update -qq && apt-get install -y \
   libcurl4-gnutls-dev
 
 ## Install R Packages
-RUN install2.r dplyr plumber jsonlite rpart here logger glue tictoc fs
+RUN install2.r dplyr plumber jsonlite rpart here logger glue tictoc fs readr
 
 
 COPY plumber /root/plumber    

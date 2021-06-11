@@ -5,7 +5,6 @@ suppressPackageStartupMessages({
 })
 
 model <- readRDS(here::here('data','model.rds'))
-irisData <- readRDS(here::here('data','iris_data.rds'))
 
 #* @param id fill the ID Data
 #* @get /predict
@@ -13,7 +12,7 @@ irisData <- readRDS(here::here('data','iris_data.rds'))
 function(id, res){
   cat (paste0("\nProses id : ",id, "\n"))
   
-  hasil <- try(get_species(id, irisData, model))
+  hasil <- try(get_species(id, model))
   
   if(inherits(hasil, "try-error")){
     res$status <- 400
